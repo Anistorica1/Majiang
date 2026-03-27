@@ -122,8 +122,6 @@ def find2(string):
         screen_x = center_x + monitor["left"]
         screen_y = center_y + monitor["top"]
         pyautogui.click(screen_x, screen_y)
-        time.sleep(0.1)
-        pyautogui.click(screen_x, screen_y)
 def find(string):
     scale = 1
 
@@ -227,18 +225,15 @@ while True:
 
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
-    ai = MahjongAI(hand)
-    tile = ai.choose_discard()[0]
-    if tile is None:
-        print("AI没返回打牌，跳过")
-        continue
+
     print(len(hand))
     if len(hand) == 14:
-        print(ai.decide())
+        ai = MahjongAI(hand)
+        tile = ai.choose_discard()[0]
         find(f"images/{tile}.png")
         time.sleep(1)
         pyautogui.moveTo(100, 100)
         hand = []
-        time.sleep(1.5)
+        time.sleep(1)
     hand = []
     time.sleep(0.1)
