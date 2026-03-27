@@ -6,6 +6,7 @@ import mss
 import glob
 from Majiang_test import MahjongAI
 import pyautogui
+import os
 scale = 1
 hand = []
 # 读取模板
@@ -42,7 +43,7 @@ def button():
     screen = np.array(sct.grab(monitor))
     gray = cv2.cvtColor(screen, cv2.COLOR_BGRA2GRAY)
 
-    threshold = 0.8
+    threshold = 0.9
     detections = []
     for name, template in resized_templates:
         w, h = template.shape[::-1]
@@ -72,12 +73,9 @@ def button():
         if i == "images2\\hu.png":
             find2("images2/hu.png")
             break
-        elif i == "images2\\lizhi.png":
-            print("mark")
-            find2("images2/lizhi.png")
-            break
+        elif i == "images\\lizhi.png":
+            find2("images/lizhi.png")
         elif i == "images2\\chi.png" or i == "images2\\peng.png" or i == "images2\\gang.png":
-            print("mark2")
             find2("images2/tiao.png")
             break
 
@@ -153,7 +151,7 @@ def find(string):
 
     _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-    if max_val > 0.9:
+    if max_val > 0.85:
         top_left = max_loc
         bottom_right = (top_left[0] + w, top_left[1] + h)
 
@@ -166,9 +164,8 @@ def find(string):
         pyautogui.click(screen_x, screen_y)
         time.sleep(0.1)
         pyautogui.click(screen_x, screen_y)
-
-templates = []
 while True:
+    templates = []
     button()
     for path in glob.glob("images/*.png"):
         img = cv2.imread(path, 0)  # 灰度读取
@@ -223,22 +220,28 @@ while True:
             if not duplicate:
                 detections.append((x, y))
                 cv2.rectangle(screen, pt, (x + w, y + h), (0, 255, 0), 2)
+                label = os.path.splitext(os.path.basename(name))[0]
+                cv2.putText(screen, label,
+                            (x, y),  # 文字位置
+                            cv2.FONT_HERSHEY_SIMPLEX,
+                            0.6, (0, 0, 255), 2)
                 hand.append(name)
-
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
-    ai = MahjongAI(hand)
-    tile = ai.choose_discard()[0]
-    if tile is None:
-        print("AI没返回打牌，跳过")
-        continue
     print(len(hand))
-    if len(hand) == 14:
-        print(ai.decide())
-        find(f"images/{tile}.png")
-        time.sleep(1)
-        pyautogui.moveTo(100, 100)
-        hand = []
-        time.sleep(1.5)
+    print(hand)
+    cv2.imshow("screen", screen)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.destroyAllWindows()
     hand = []
-    time.sleep(0.1)
+    # ai = MahjongAI(hand)
+    # tile = ai.choose_discard()[0]
+    # if tile is None:
+    #     print("AI没返回打牌，跳过")
+    #     continue
+    # print(ai.decide())
+    # find(f"images/{tile}.png")
+    # time.sleep(1)
+    # pyautogui.moveTo(100, 100)
+    # hand = []
+    # time.sleep(1)
