@@ -5,7 +5,7 @@ import mss
 scale = 1
 
 # 读取模板
-template = cv2.imread("images/7t.png", 0)
+template = cv2.imread("images/1t.png", 0)
 
 # 缩放模板
 template = cv2.resize(template, None, fx=scale, fy=scale)
@@ -31,7 +31,7 @@ while True:
 
     _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-    if max_val > 0.65:
+    if max_val > 0.9:
         top_left = max_loc
         bottom_right = (top_left[0] + w, top_left[1] + h)
 

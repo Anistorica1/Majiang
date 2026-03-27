@@ -1,17 +1,37 @@
 from collections import Counter
+import os
 
 class MahjongAI:
-    def __init__(self, hand):
-        self.hand = hand  # 13 or 14 tiles
+
+    def __init__(self, hand_paths):
+        # 原始图片路径
+        self.hand_paths = hand_paths
+
+        # 转换为牌面
+        self.hand = [self.parse_tile(p) for p in hand_paths]
+
+    # ---------------------------
+    # 解析牌
+    # ---------------------------
+    def parse_tile(self, tile_path):
+        filename = os.path.basename(tile_path)
+        return filename.replace(".png", "")
 
     # ---------------------------
     # 判断是否胡
     # ---------------------------
     def is_win(self):
-        return self.shanten(self.hand) == 0
+        if self.shanten(self.hand) != 0:
+            return False
+
+        # 必须有役
+        if not self.has_yaku(self.hand):
+            return False
+
+        return True
 
     # ---------------------------
-    # 向听数计算（简化）
+    # 向听数（简化）
     # ---------------------------
     def shanten(self, hand):
         hand = sorted(hand)
@@ -38,7 +58,7 @@ class MahjongAI:
         return min_shanten
 
     # ---------------------------
-    # 提取面子
+    # 面子提取
     # ---------------------------
     def remove_melds(self, tile_counter):
         counter = tile_counter.copy()
@@ -51,54 +71,98 @@ class MahjongAI:
                 melds += 1
 
         # 顺子
-        for suit in ["m", "p", "s"]:
+        for suit in ["w", "p", "t"]:
             nums = [str(i) + suit for i in range(1, 10)]
-            counts = [counter[t] for t in nums]
+            counts = [counter[t] for t in nums if t in counter]
 
             i = 0
-            while i < 7:
-                while counts[i] > 0 and counts[i+1] > 0 and counts[i+2] > 0:
-                    counts[i] -= 1
-                    counts[i+1] -= 1
-                    counts[i+2] -= 1
+            while i < len(nums) - 2:
+                t1, t2, t3 = nums[i], nums[i+1], nums[i+2]
+                while counter.get(t1,0) > 0 and counter.get(t2,0) > 0 and counter.get(t3,0) > 0:
+                    counter[t1] -= 1
+                    counter[t2] -= 1
+                    counter[t3] -= 1
                     melds += 1
                 i += 1
-
-            for idx, t in enumerate(nums):
-                counter[t] = counts[idx]
 
         leftovers = sum(counter.values())
         return melds, leftovers
 
     # ---------------------------
-    # 是否立直（简化策略）
+    # 役判断（简化版，但可用）
     # ---------------------------
-    def should_riichi(self):
+    def has_yaku(self, hand):
         """
-        简化策略：
-        - 向听数 = 1 时建议立直
+        简化役判断：
+        至少满足一个役才允许胡牌
         """
 
-        s = self.shanten(self.hand)
-
-        if s == 1:
+        # 断幺九（无1/9/字牌）
+        if self.is_tanyao(hand):
             return True
+
+        # 对对和（全刻子）
+        if self.is_toitoi(hand):
+            return True
+
+        # 七对子（特殊）
+        if self.is_chiitoi(hand):
+            return True
+
+        # 平和（简化版）
+        if self.is_pinfu(hand):
+            return True
+
+        # 字一色（全字牌）
+        if self.is_ziiso(hand):
+            return True
+
         return False
 
     # ---------------------------
-    # 是否吃（默认：不吃）
+    # 各种役判断
     # ---------------------------
-    def should_chi(self):
-        return False
+
+    def is_tanyao(self, hand):
+        for tile in hand:
+            if tile[0] in ["1","9"]:
+                return False
+            if tile in ["E","S","W","N","R","G","D"]:
+                return False
+        return True
+
+    def is_toitoi(self, hand):
+        counter = Counter(hand)
+        melds = 0
+        for tile in counter:
+            if counter[tile] >= 3:
+                melds += 1
+        return melds >= 4
+
+    def is_chiitoi(self, hand):
+        counter = Counter(hand)
+        return len(counter) == 7 and all(v == 2 for v in counter.values())
+
+    def is_pinfu(self, hand):
+        """
+        简化版平和（不完全精确，但够用）
+        条件：
+        - 全顺子
+        - 无字牌
+        """
+        for tile in hand:
+            if tile in ["E","S","W","N","R","G","D"]:
+                return False
+        return True
+
+    def is_ziiso(self, hand):
+        for tile in hand:
+            if tile not in ["E","S","W","N","R","G","D"]:
+                return False
+        return True
 
     # ---------------------------
-    # 是否碰（默认：不碰）
-    # ---------------------------
-    def should_pon(self):
-        return False
-
-    # ---------------------------
-    # 选择弃牌
+    # 自动打牌
     # ---------------------------
     def choose_discard(self):
         best_tile = None
@@ -117,47 +181,21 @@ class MahjongAI:
         return best_tile, best_shanten
 
     # ---------------------------
-    # 综合决策
+    # 决策
     # ---------------------------
     def decide(self):
-        # 1. 是否胡
         if self.is_win():
             return "胡"
 
-        # 2. 是否立直
-        if self.should_riichi():
-            riichi = True
-        else:
-            riichi = False
-
-        # 3. 吃碰（默认不做）
-        chi = self.should_chi()
-        pon = self.should_pon()
-
-        # 4. 打牌
+        # 向听数
         discard, s = self.choose_discard()
+
+        # 是否建议立直
+        riichi = (s == 1)
 
         return {
             "立直": riichi,
-            "吃": chi,
-            "碰": pon,
             "打牌": discard,
-            "向听数": s
+            "向听数": s,
+            "是否可胡(需有役)": self.is_win()
         }
-
-
-# ---------------------------
-# 测试
-# ---------------------------
-if __name__ == "__main__":
-    hand = [
-        "1m","2m","3m",
-        "4p","5p","6p",
-        "7s","8s","9s",
-        "E","E","R","R"
-    ]
-
-    ai = MahjongAI(hand)
-
-    result = ai.decide()
-    print(result)
