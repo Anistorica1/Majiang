@@ -4,8 +4,9 @@ import cv2
 import numpy as np
 import mss
 import glob
-from Majiang_test import MahjongAI
+from Majiang_test import RiichiAI
 import pyautogui
+import os
 scale = 1
 hand = []
 # 读取模板
@@ -73,8 +74,10 @@ def button():
             find2("images2/hu.png")
             break
         elif i == "images2\\lizhi.png":
-            print("mark")
             find2("images2/lizhi.png")
+            break
+        elif i == "images2\\zimo.png":
+            find2("images2/zimo.png")
             break
         elif i == "images2\\chi.png" or i == "images2\\peng.png" or i == "images2\\gang.png":
             print("mark2")
@@ -123,6 +126,7 @@ def find2(string):
         screen_y = center_y + monitor["top"]
         pyautogui.click(screen_x, screen_y)
 def find(string):
+    print("find"+string)
     scale = 1
 
     # 读取模板
@@ -151,7 +155,7 @@ def find(string):
 
     _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-    if max_val > 0.9:
+    if max_val > 0.7:
         top_left = max_loc
         bottom_right = (top_left[0] + w, top_left[1] + h)
 
@@ -198,12 +202,16 @@ while True:
     gray = cv2.cvtColor(screen, cv2.COLOR_BGRA2GRAY)
 
 
-    threshold = 0.9
+    threshold = 0.8
     detections = []
     for name, template in resized_templates:
         w, h = template.shape[::-1]
 
         result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
+        if name == "images\\9p.png" or name == "images\\8p.png":
+            threshold = 0.7
+        if (name == "images\\7t.png" or name == "images\\9t.png"):
+            threshold = 0.85
         loc = np.where(result >= threshold)
 
         points = list(zip(*loc[::-1]))
@@ -221,19 +229,21 @@ while True:
             if not duplicate:
                 detections.append((x, y))
                 cv2.rectangle(screen, pt, (x + w, y + h), (0, 255, 0), 2)
-                hand.append(name)
+                path = name
+                path = os.path.splitext(os.path.basename(path))[0]
+                hand.append(path)
 
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
 
     print(len(hand))
     if len(hand) == 14:
-        ai = MahjongAI(hand)
-        tile = ai.choose_discard()[0]
-        find(f"images/{tile}.png")
+        print("test")
+        ai = RiichiAI(hand)
+        find(f"images/{ai.recommend_discard()}.png")
         time.sleep(1)
         pyautogui.moveTo(100, 100)
         hand = []
-        time.sleep(1)
+        time.sleep(2)
     hand = []
     time.sleep(0.1)

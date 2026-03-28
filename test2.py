@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import mss
 import glob
-from Majiang_test import MahjongAI
 import pyautogui
 import os
 scale = 1
@@ -197,12 +196,16 @@ while True:
     gray = cv2.cvtColor(screen, cv2.COLOR_BGRA2GRAY)
 
 
-    threshold = 0.9
+    threshold = 0.8
     detections = []
     for name, template in resized_templates:
         w, h = template.shape[::-1]
 
         result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
+        if name == "images\\9p.png" or name == "images\\8p.png":
+            threshold = 0.7
+        if name == "images\\7t.png" or name == "images\\9t.png":
+            threshold = 0.85
         loc = np.where(result >= threshold)
 
         points = list(zip(*loc[::-1]))
