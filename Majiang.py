@@ -202,15 +202,16 @@ while True:
     gray = cv2.cvtColor(screen, cv2.COLOR_BGRA2GRAY)
 
 
-    threshold = 0.8
+
     detections = []
     for name, template in resized_templates:
+        threshold = 0.8
         w, h = template.shape[::-1]
 
         result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
-        if name == "images\\9p.png" or name == "images\\8p.png":
+        if name == "images\\9p.png" or name == "images\\8p.png" or name == "images\\bai.png":
             threshold = 0.7
-        if (name == "images\\7t.png" or name == "images\\9t.png"):
+        if name == "images\\7t.png" or name == "images\\9t.png" or name == "images\\4t.png":
             threshold = 0.85
         loc = np.where(result >= threshold)
 
