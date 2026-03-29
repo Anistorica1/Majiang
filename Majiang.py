@@ -7,31 +7,58 @@ import glob
 from Majiang_test import RiichiAI
 import pyautogui
 import os
+import sys
 scale = 1
 hand = []
+#确认
 # 读取模板
+template3 = cv2.imread("queren.png", 0)
+
+# 缩放模板
+template3 = cv2.resize(template3, None, fx=scale, fy=scale)
+def confirm():
+
+
+    # 用缩放后的尺寸
+    w, h = template3.shape[::-1]
+    monitor = {
+        "top": 640,
+        "left": 800,
+        "width": 200,
+        "height": 100
+    }
+
+
+    screen = np.array(sct.grab(monitor))
+    gray = cv2.cvtColor(screen, cv2.COLOR_BGRA2GRAY)
+
+    # 用缩放后的 template
+    result = cv2.matchTemplate(gray, template3, cv2.TM_CCOEFF_NORMED)
+
+    _, max_val, _, max_loc = cv2.minMaxLoc(result)
+
+    if max_val > 0.9:
+        print("confirm", max_val)
+        pyautogui.click(914, 670)
+        time.sleep(3)
+        pyautogui.click(770, 666)
+        time.sleep(3)
+        pyautogui.click(373, 607)
+# 读取模板
+templates2 = []
+for path in glob.glob("images2/*.png"):
+    img = cv2.imread(path, 0)  # 灰度读取
+    templates2.append((path, img))
+
+resized_templates2 = []
+
+for name, template in templates2:
+    template = cv2.resize(template, None, fx=scale, fy=scale)
+    resized_templates2.append((name, template))
+sct = mss.mss()
 def button():
     scale = 1
     hand = []
-    # 读取模板
-    templates = []
-    for path in glob.glob("images2/*.png"):
-        img = cv2.imread(path, 0)  # 灰度读取
-        templates.append((path, img))
-
-    resized_templates = []
-
-    for name, template in templates:
-        template = cv2.resize(template, None, fx=scale, fy=scale)
-        resized_templates.append((name, template))
-
-    # 缩放模板
-    template = cv2.resize(template, None, fx=scale, fy=scale)
-
-    # 用缩放后的尺寸
-    w, h = template.shape[::-1]
-
-    sct = mss.mss()
 
     monitor = {
         "top": 540,
@@ -45,7 +72,7 @@ def button():
 
     threshold = 0.8
     detections = []
-    for name, template in resized_templates:
+    for name, template in resized_templates2:
         w, h = template.shape[::-1]
 
         result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
@@ -170,27 +197,21 @@ def find(string):
         pyautogui.click(screen_x, screen_y)
 
 templates = []
+for path in glob.glob("images/*.png"):
+    img = cv2.imread(path, 0)  # 灰度读取
+    templates.append((path, img))
+
+resized_templates = []
+
+for name, template in templates:
+    template = cv2.resize(template, None, fx=scale, fy=scale)
+    resized_templates.append((name, template))
+
 while True:
     button()
-    for path in glob.glob("images/*.png"):
-        img = cv2.imread(path, 0)  # 灰度读取
-        templates.append((path, img))
-
-    resized_templates = []
-
-    for name, template in templates:
-        template = cv2.resize(template, None, fx=scale, fy=scale)
-        resized_templates.append((name, template))
-    template = cv2.imread("images/dong.png", 0)
-
-    # 缩放模板
-    template = cv2.resize(template, None, fx=scale, fy=scale)
+    time.sleep(0.5)
 
     # 用缩放后的尺寸
-    w, h = template.shape[::-1]
-
-    sct = mss.mss()
-
     monitor = {
         "top": 640,
         "left": 100,
@@ -209,7 +230,7 @@ while True:
         w, h = template.shape[::-1]
 
         result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
-        if name == "images\\9p.png" or name == "images\\8p.png" or name == "images\\bai.png":
+        if name == "images\\9p.png" or name == "images\\8p.png" or name == "images\\bai.png" or name == "images\\5p.png":
             threshold = 0.7
         if name == "images\\7t.png" or name == "images\\9t.png" or name == "images\\4t.png":
             threshold = 0.85
@@ -238,13 +259,13 @@ while True:
         #     break
 
     print(len(hand))
+    confirm()
+    time.sleep(0.5)
     if len(hand) == 14:
-        print("test")
         ai = RiichiAI(hand)
         find(f"images/{ai.recommend_discard()}.png")
         time.sleep(1)
         pyautogui.moveTo(100, 100)
-        hand = []
-        time.sleep(2)
+
     hand = []
     time.sleep(0.1)

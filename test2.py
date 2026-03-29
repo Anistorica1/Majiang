@@ -202,7 +202,7 @@ while True:
         w, h = template.shape[::-1]
 
         result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
-        if name == "images\\9p.png" or name == "images\\8p.png" or name == "images\\bai.png":
+        if name == "images\\9p.png" or name == "images\\8p.png" or name == "images\\bai.png"or name == "images\\5p.png":
             threshold = 0.7
         if name == "images\\7t.png" or name == "images\\9t.png" or name == "images\\4t.png":
             threshold = 0.85
