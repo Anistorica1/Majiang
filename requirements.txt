@@ -1,0 +1,6 @@
+opencv-python~=4.13.0.92
+numpy~=1.26.4
+mss~=10.1.0
+pyautogui~=0.9.54
+ultralytics~=8.4.30
+mahjong~=1.4.0

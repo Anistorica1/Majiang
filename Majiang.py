@@ -40,9 +40,9 @@ def confirm():
     if max_val > 0.9:
         print("confirm", max_val)
         pyautogui.click(914, 670)
-        time.sleep(3)
+        time.sleep(5)
         pyautogui.click(770, 666)
-        time.sleep(3)
+        time.sleep(5)
         pyautogui.click(373, 607)
 # 读取模板
 templates2 = []
