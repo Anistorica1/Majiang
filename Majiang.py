@@ -263,6 +263,7 @@ while True:
     time.sleep(0.5)
     if len(hand) == 14:
         ai = RiichiAI(hand)
+        button()
         find(f"images/{ai.recommend_discard()}.png")
         time.sleep(1)
         pyautogui.moveTo(100, 100)
