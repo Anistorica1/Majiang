@@ -222,8 +222,7 @@ while True:
     screen = np.array(sct.grab(monitor))
     gray = cv2.cvtColor(screen, cv2.COLOR_BGRA2GRAY)
 
-
-
+    display_screen = screen.copy()
     detections = []
     for name, template in resized_templates:
         threshold = 0.8
@@ -250,11 +249,28 @@ while True:
 
             if not duplicate:
                 detections.append((x, y))
-                cv2.rectangle(screen, pt, (x + w, y + h), (0, 255, 0), 2)
+                cv2.rectangle(display_screen, pt, (x + w, y + h), (0, 255, 0), 2)
                 path = name
+                display_name = os.path.splitext(os.path.basename(path))[0]
                 path = os.path.splitext(os.path.basename(path))[0]
                 hand.append(path)
+                label_position = (x, y - 5)  # Above rectangle
+                if y - 5 < 0:  # If too close to top, put inside
+                    label_position = (x, y + 15)
+                (text_w, text_h), _ = cv2.getTextSize(display_name, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+                cv2.rectangle(display_screen,
+                              (x, y - text_h - 3),
+                              (x + text_w + 3, y),
+                              (0, 255, 0),
+                              -1)  # Filled rectangle
 
+                # Put text label
+                cv2.putText(display_screen, display_name, label_position,
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+
+            cv2.imshow("Detections", display_screen)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
         # if cv2.waitKey(1) & 0xFF == ord('q'):
         #     break
 
