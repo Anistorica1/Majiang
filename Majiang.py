@@ -10,6 +10,7 @@ import os
 import sys
 scale = 1
 hand = []
+screen_resolution_detection = True
 #确认
 # 读取模板
 template3 = cv2.imread("queren.png", 0)
@@ -206,8 +207,10 @@ resized_templates = []
 for name, template in templates:
     template = cv2.resize(template, None, fx=scale, fy=scale)
     resized_templates.append((name, template))
-
-while True:
+if sct.monitors[0]['height'] != 1080:
+    print("当前屏幕分辨率不为1080p，请调整至1080p")
+    screen_resolution_detection = False
+while screen_resolution_detection:
     button()
     time.sleep(0.5)
 
